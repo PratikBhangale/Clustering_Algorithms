@@ -3,18 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 from scipy import stats
+from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.cluster import AffinityPropagation
 from sklearn.cluster import AgglomerativeClustering
 import seaborn as sns
+import scipy.cluster.hierarchy as sch
 
 df = pd.read_excel("Online Retail.xlsx")
 df = df[df['CustomerID'].notna()]
 print(df.shape)
 
 # For Sampling the dataset
-df_sampled = df.sample(30000, random_state=42)
+df_sampled = df.sample(300000)
 df_sampled["InvoiceDate"] = df_sampled["InvoiceDate"].dt.date
 print(df_sampled.shape)
 
@@ -53,37 +55,27 @@ customers_normalized = scaler.transform(customers_fix)
 print(customers_normalized.mean(axis=0).round(2))  # [0. -0. 0.]
 print(customers_normalized.std(axis=0).round(2))  # [1. 1. 1.]
 
-# Using the Kmeans Algorithm
-sse = {}
-for k in range(1, 11):
-    kmeans = KMeans(n_clusters=k, random_state=42)
-    kmeans.fit(customers_normalized)
-    sse[k] = kmeans.inertia_  # SSE to closest cluster centroid
-plt.title('The Elbow Method')
-plt.xlabel('k')
-plt.ylabel('SSE')
-sns.pointplot(x=list(sse.keys()), y=list(sse.values()))
+# Agglomerative Clustering
+
+plt.figure(figsize=(10, 10))
+dendrogram = sch.dendrogram(sch.linkage(customers_normalized, method='ward'))
+plt.title('Dendrogram')
+plt.xlabel('Customers')
+plt.ylabel('Euclidean distances')
 plt.show()
 
-# We deduce that k=3 is the best value, so now we fit it
-model = KMeans(n_clusters=4)
-model.fit(customers_normalized)
-print(model.cluster_centers_)
+# We determine 3 is the optimum number of Clusters
 
-# Visualise clusters for Kmeans Algorithm
-y_km = model.fit_predict(customers_normalized)
-plt.scatter(customers_normalized[y_km == 0, 0], customers_normalized[y_km == 0, 1], s=10, c='red')
-plt.scatter(customers_normalized[y_km == 1, 0], customers_normalized[y_km == 1, 1], s=10, c='black')
-plt.scatter(customers_normalized[y_km == 2, 0], customers_normalized[y_km == 2, 1], s=10, c='blue')
-plt.scatter(customers_normalized[y_km == 3, 0], customers_normalized[y_km == 3, 1], s=10, c='yellow')
+hc = AgglomerativeClustering(n_clusters=3, affinity='euclidean', linkage='ward')
+y_hc = hc.fit_predict(customers_normalized)
+
+# Visualise the Clusters
+plt.figure(figsize=(8, 8))
+plt.scatter(customers_normalized[y_hc == 0, 0], customers_normalized[y_hc == 0, 1], s=10, c='red')
+plt.scatter(customers_normalized[y_hc == 1, 0], customers_normalized[y_hc == 1, 1], s=10, c='blue')
+plt.scatter(customers_normalized[y_hc == 2, 0], customers_normalized[y_hc == 2, 1], s=10, c='green')
+plt.title('Clusters of customers using Hierarchical Clustering')
+plt.xlabel('Annual Income (K$)')
+plt.ylabel('Spending Score (1-100)')
+plt.legend()
 plt.show()
-
-print(model.predict(customers_normalized))
-
-
-# Affinity Propogation
-afprop = AffinityPropagation(max_iter=250, random_state=None)
-afprop.fit(customers_normalized)
-cluster_centers_indices = afprop.cluster_centers_indices_
-n_clusters_ = len(cluster_centers_indices)
-print(n_clusters_)
