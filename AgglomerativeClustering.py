@@ -77,5 +77,4 @@ plt.scatter(customers_normalized[y_hc == 2, 0], customers_normalized[y_hc == 2, 
 plt.title('Clusters of customers using Hierarchical Clustering')
 plt.xlabel('Annual Income (K$)')
 plt.ylabel('Spending Score (1-100)')
-plt.legend()
 plt.show()
