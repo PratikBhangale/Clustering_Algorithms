@@ -54,15 +54,16 @@ customers_normalized = scaler.transform(customers_fix)
 # Assert that the dataset has mean 0 and variance 1
 print(customers_normalized.mean(axis=0).round(2))  # [0. -0. 0.]
 print(customers_normalized.std(axis=0).round(2))  # [1. 1. 1.]
+print(customers_normalized.shape)
 
+# Affinity Propogation
+# Still working on the Errors
+afProp = AffinityPropagation(max_iter=200, random_state=42)
+afProp.fit(customers_normalized)
+P = afProp.predict(customers_normalized)
+cluster_centers_indices = afProp.cluster_centers_indices_
+n_clusters_ = len(cluster_centers_indices)
 
-# BIRCH Clustering
-
-model = Birch(branching_factor=50, n_clusters=3, threshold=1.5)
-birch = model.fit_predict(customers_normalized)
-plt.figure(figsize=(8, 8))
-plt.scatter(customers_normalized[birch == 0, 0], customers_normalized[birch == 0, 1], s=10, c='red')
-plt.scatter(customers_normalized[birch == 1, 0], customers_normalized[birch == 1, 1], s=10, c='blue')
-plt.scatter(customers_normalized[birch == 2, 0], customers_normalized[birch == 2, 1], s=10, c='green')
-plt.title('Clusters of customers using Incremental Clustering')
+plt.scatter(customers_fix[:, 0], customers_fix[:, 1], s=10)
+plt.title(f'Estimated number of clusters = {n_clusters_}')
 plt.show()
