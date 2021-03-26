@@ -1,22 +1,18 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import datetime
-from scipy import stats
-from sklearn.metrics import silhouette_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans, Birch
-from sklearn.cluster import AffinityPropagation
-from sklearn.cluster import AgglomerativeClustering
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
-import scipy.cluster.hierarchy as sch
+from scipy import stats
+from sklearn.cluster import AffinityPropagation
+from sklearn.preprocessing import StandardScaler
 
 df = pd.read_excel("Online Retail.xlsx")
 df = df[df['CustomerID'].notna()]
 print(df.shape)
 
 # For Sampling the dataset
-df_sampled = df.sample(10000)
+df_sampled = df.sample(100000)
 df_sampled["InvoiceDate"] = df_sampled["InvoiceDate"].dt.date
 print(df_sampled.shape)
 
@@ -60,10 +56,29 @@ print(customers_normalized.shape)
 # Still working on the Errors
 afProp = AffinityPropagation(max_iter=200, random_state=42)
 afProp.fit(customers_normalized)
-P = afProp.predict(customers_normalized)
-cluster_centers_indices = afProp.cluster_centers_indices_
-n_clusters_ = len(cluster_centers_indices)
+print(afProp.cluster_centers_indices_)
 
-plt.scatter(customers_fix[:, 0], customers_fix[:, 1], s=10)
-plt.title(f'Estimated number of clusters = {n_clusters_}')
+# Line Plot
+# Create the dataframe
+df_normalized = pd.DataFrame(customers_normalized, columns=['Recency', 'Frequency', 'MonetaryValue'])
+df_normalized['ID'] = customers.index
+df_normalized['Cluster'] = afProp.labels_
+# (Melt The Data)
+df_nor_melt = pd.melt(df_normalized.reset_index(),
+                      id_vars=['ID', 'Cluster'],
+                      value_vars=['Recency', 'Frequency', 'MonetaryValue'],
+                      var_name='Attribute',
+                      value_name='Value')
+df_nor_melt.head()
+# (Visualize the data)
+sns.lineplot(x='Attribute', y='Value', hue='Cluster', data=df_nor_melt)
+plt.show()
+
+fig = plt.figure(figsize=(6, 6))
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(df_normalized['Recency'], df_normalized['Frequency'], df_normalized['MonetaryValue'],
+           linewidths=1, alpha=.7,
+           # edgecolor='k',
+           s=20,
+           c=afProp.labels_)
 plt.show()

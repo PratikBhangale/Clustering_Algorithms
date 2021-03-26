@@ -4,18 +4,15 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy import stats
-from sklearn.cluster import MiniBatchKMeans
 from sklearn.cluster import OPTICS
 from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import MeanShift
-
 
 df = pd.read_excel("Online Retail.xlsx")
 df = df[df['CustomerID'].notna()]
 print(df.shape)
 
 # For Sampling the dataset
-df_sampled = df.sample(30000)
+df_sampled = df.sample(300000)
 df_sampled["InvoiceDate"] = df_sampled["InvoiceDate"].dt.date
 print(df_sampled.shape)
 

@@ -1,15 +1,12 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import datetime
-from scipy import stats
-from sklearn.metrics import silhouette_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-from sklearn.cluster import AffinityPropagation
-from sklearn.cluster import AgglomerativeClustering
-import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import scipy.cluster.hierarchy as sch
+import seaborn as sns
+from scipy import stats
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.preprocessing import StandardScaler
 
 df = pd.read_excel("Online Retail.xlsx")
 df = df[df['CustomerID'].notna()]
@@ -67,12 +64,29 @@ plt.show()
 # We determine 3 is the optimum number of Clusters
 
 hc = AgglomerativeClustering(n_clusters=3, affinity='euclidean', linkage='ward')
-y_hc = hc.fit_predict(customers_normalized)
+y_hc = hc.fit(customers_normalized)
 
-# Visualise the Clusters
-plt.figure(figsize=(8, 8))
-plt.scatter(customers_normalized[y_hc == 0, 0], customers_normalized[y_hc == 0, 1], s=10, c='red')
-plt.scatter(customers_normalized[y_hc == 1, 0], customers_normalized[y_hc == 1, 1], s=10, c='blue')
-plt.scatter(customers_normalized[y_hc == 2, 0], customers_normalized[y_hc == 2, 1], s=10, c='green')
-plt.title('Clusters of customers using Hierarchical Clustering')
+# Line Plot
+# Create the dataframe
+df_normalized = pd.DataFrame(customers_normalized, columns=['Recency', 'Frequency', 'MonetaryValue'])
+df_normalized['ID'] = customers.index
+df_normalized['Cluster'] = y_hc.labels_
+# (Melt The Data)
+df_nor_melt = pd.melt(df_normalized.reset_index(),
+                      id_vars=['ID', 'Cluster'],
+                      value_vars=['Recency', 'Frequency', 'MonetaryValue'],
+                      var_name='Attribute',
+                      value_name='Value')
+df_nor_melt.head()
+# (Visualize the data)
+sns.lineplot(x='Attribute', y='Value', hue='Cluster', data=df_nor_melt)
+plt.show()
+
+fig = plt.figure(figsize=(6, 6))
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(df_normalized['Recency'], df_normalized['Frequency'], df_normalized['MonetaryValue'],
+           linewidths=1, alpha=.7,
+           # edgecolor='k',
+           s=20,
+           c=y_hc.labels_)
 plt.show()

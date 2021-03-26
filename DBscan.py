@@ -1,23 +1,18 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import datetime
-from scipy import stats
-from sklearn.metrics import silhouette_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import DBSCAN
-from sklearn.cluster import AffinityPropagation
-from sklearn.cluster import AgglomerativeClustering
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
-import scipy.cluster.hierarchy as sch
-from mpl_toolkits.mplot3d import Axes3D
+from scipy import stats
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
 
 df = pd.read_excel("Online Retail.xlsx")
 df = df[df['CustomerID'].notna()]
 print(df.shape)
 
 # For Sampling the dataset
-df_sampled = df.sample(100000)
+df_sampled = df.sample(300000)
 df_sampled["InvoiceDate"] = df_sampled["InvoiceDate"].dt.date
 print(df_sampled.shape)
 
@@ -61,7 +56,8 @@ print(customers_normalized.std(axis=0).round(2))  # [1. 1. 1.]
 dbscan = DBSCAN()
 dbscan.fit(customers_normalized)
 
-# Normalised Dataframe
+# Line Plot
+# Create the dataframe
 df_normalized = pd.DataFrame(customers_normalized, columns=['Recency', 'Frequency', 'MonetaryValue'])
 df_normalized['ID'] = customers.index
 df_normalized['Cluster'] = dbscan.labels_
@@ -71,6 +67,8 @@ df_nor_melt = pd.melt(df_normalized.reset_index(),
                       value_vars=['Recency', 'Frequency', 'MonetaryValue'],
                       var_name='Attribute',
                       value_name='Value')
+df_nor_melt.head()
+# (Visualize the data)
 sns.lineplot(x='Attribute', y='Value', hue='Cluster', data=df_nor_melt)
 plt.show()
 

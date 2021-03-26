@@ -108,3 +108,12 @@ df_nor_melt.head()
 # (Visualize the data)
 sns.lineplot(x='Attribute', y='Value', hue='Cluster', data=df_nor_melt)
 plt.show()
+
+fig = plt.figure(figsize=(6, 6))
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(df_normalized['Recency'], df_normalized['Frequency'], df_normalized['MonetaryValue'],
+           linewidths=1, alpha=.7,
+           # edgecolor='k',
+           s=20,
+           c=model.labels_)
+plt.show()

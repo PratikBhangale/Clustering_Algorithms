@@ -1,22 +1,18 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import datetime
-from scipy import stats
-from sklearn.metrics import silhouette_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans, Birch
-from sklearn.cluster import AffinityPropagation
-from sklearn.cluster import AgglomerativeClustering
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
-import scipy.cluster.hierarchy as sch
+from scipy import stats
+from sklearn.cluster import Birch
+from sklearn.preprocessing import StandardScaler
 
 df = pd.read_excel("Online Retail.xlsx")
 df = df[df['CustomerID'].notna()]
 print(df.shape)
 
 # For Sampling the dataset
-df_sampled = df.sample(10000)
+df_sampled = df.sample(300000)
 df_sampled["InvoiceDate"] = df_sampled["InvoiceDate"].dt.date
 print(df_sampled.shape)
 
@@ -59,10 +55,29 @@ print(customers_normalized.std(axis=0).round(2))  # [1. 1. 1.]
 # BIRCH Clustering
 
 model = Birch(branching_factor=50, n_clusters=3, threshold=1.5)
-birch = model.fit_predict(customers_normalized)
-plt.figure(figsize=(8, 8))
-plt.scatter(customers_normalized[birch == 0, 0], customers_normalized[birch == 0, 1], s=10, c='red')
-plt.scatter(customers_normalized[birch == 1, 0], customers_normalized[birch == 1, 1], s=10, c='blue')
-plt.scatter(customers_normalized[birch == 2, 0], customers_normalized[birch == 2, 1], s=10, c='green')
-plt.title('Clusters of customers using Incremental Clustering')
+model.fit(customers_normalized)
+
+# Line Plot
+# Create the dataframe
+df_normalized = pd.DataFrame(customers_normalized, columns=['Recency', 'Frequency', 'MonetaryValue'])
+df_normalized['ID'] = customers.index
+df_normalized['Cluster'] = model.labels_
+# (Melt The Data)
+df_nor_melt = pd.melt(df_normalized.reset_index(),
+                      id_vars=['ID', 'Cluster'],
+                      value_vars=['Recency', 'Frequency', 'MonetaryValue'],
+                      var_name='Attribute',
+                      value_name='Value')
+df_nor_melt.head()
+# (Visualize the data)
+sns.lineplot(x='Attribute', y='Value', hue='Cluster', data=df_nor_melt)
+plt.show()
+
+fig = plt.figure(figsize=(6, 6))
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(df_normalized['Recency'], df_normalized['Frequency'], df_normalized['MonetaryValue'],
+           linewidths=1, alpha=.7,
+           # edgecolor='k',
+           s=20,
+           c=model.labels_)
 plt.show()
