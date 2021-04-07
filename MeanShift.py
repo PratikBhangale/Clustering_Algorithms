@@ -52,7 +52,7 @@ print(customers_normalized.mean(axis=0).round(2))  # [0. -0. 0.]
 print(customers_normalized.std(axis=0).round(2))  # [1. 1. 1.]
 
 # Using the Mean Shift Algorithm
-ms = MeanShift()
+ms = MeanShift(n_jobs=3)
 ms.fit(customers_normalized)
 
 customers["Cluster"] = ms.labels_
